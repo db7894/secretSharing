@@ -1,26 +1,57 @@
-#Secret Sharing w/ Lagrange Polynomials!
+#Daniel Bashir
+#CS5 Black
+#hw8pr4
+#Secret sharing with the Lagrange Polynomial method
 
-def distributeSecret():
-    """
-    asks the user for the number n of trustees and the number k of trustees 
-    who should be able to recreate the secret (you may assume that k < n). 
-    It then constructs a random polynomial of degree k-1 (all the random 
-    coefficients on that polynomial are between 1 and 1000) and chooses 
-    and prints n lists of the form [x, y], one for each trustee. 
-    Each of these points should have a unique x value and should be on the 
-    randomly chosen polynomial. Finally, the function prints the secret - 
-    the y-intercept of the secret polynomial - for internal use by the bank.
-    """
 
-    #Get values of k and n, assume that k < n
-    n = input("How many trustees are there?")
-    k = input("How many should be able to reconstruct the secret?")
+from random import randint
 
-def verify(pointList, secret):
+def create_random_poly(degree,yint):
     """
-    takes as input a list of exactly k points pointList (for example it might be [ [1, 2], [3, 5], [6, 8]] 
-    if k is 3) and the numerical secret (the y-intercept of the secret polynomial) and returns the Boolean 
-    True if the Lagrange polynomial reconstructed from the k points in pointList has y-intercept equal to 
-    secret and False otherwise.
+    Inputs: degree of a polynomial, y intercept
+    Output: The polynomial with random coefficients
     """
-    pass
+    polynomial = ""
+    for i in range(1,degree+1):
+        coeff = randint(1,1000)
+        polynomial += (str(coeff) + '*' + 'x**' + str(degree-(i-1)) + '+' )
+    polynomial += str(yint)
+    return polynomial
+
+def eval_poly(poly,x):
+    """
+    Inputs: polynomial returned by create_random_poly
+    Output: value at which we evaluate polynomial
+    """
+    return eval(poly.replace('x',str(x)))
+
+def distributeSecret(n, k, secret):
+    """
+    Inputs: number of points function returns, k = number of points to return the secret, and secret is the secret
+    Output: a list of n lists, each of which is a point
+    """
+    points = []
+    secretPoly = create_random_poly(k-1,secret)
+    print(secretPoly)
+    for i in range(n):
+        xVal = randint(1,1000)
+        points.append([xVal,eval_poly(secretPoly,xVal)])
+    return points
+
+def eval_pointspoly(points, x):
+    """
+    Inputs: points like those from distribute secret and an x value to find a polynomial
+    Output: evaluated polynomial at point x
+    """
+    evaluatedPoly = 0
+    print(len(points))
+    
+    for i in range(len(points)):
+        prePoly = 1
+        for j in range(len(points)):
+            if points[i][0] != points[j][0]:
+                part = (x-points[j][0])/(points[i][0]-points[j][0])
+                prePoly *= part
+        evaluatedPoly += prePoly*points[i][1]
+        print(evaluatedPoly)
+    return eval_poly(str(evaluatedPoly),x)
